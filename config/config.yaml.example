@@ -1,0 +1,72 @@
+# ============================================
+# Cloud Data Warehouse Configuration
+# ============================================
+# Copy this file to config.yaml and update with your actual values
+# DO NOT commit config.yaml to version control
+
+# ============================================
+# AWS Configuration
+# ============================================
+aws:
+  region: us-east-1
+  s3_bucket: your-bucket-name-here
+  s3_prefix: ecommerce-data/
+  # Optional: S3 endpoint URL (leave blank for standard AWS)
+  endpoint_url: null
+
+# ============================================
+# Snowflake Configuration
+# ============================================
+snowflake:
+  # Account identifier (find in Snowflake URL)
+  account: your-account-identifier
+
+  # Compute warehouse for query execution
+  warehouse: COMPUTE_WH
+
+  # Database name
+  database: ECOMMERCE_DW
+
+  # Schema layers following medallion architecture
+  schemas:
+    raw: RAW_LAYER          # Bronze layer - raw data from S3
+    staging: STAGING_LAYER   # Silver layer - cleaned and validated
+    production: PRODUCTION_LAYER  # Gold layer - dimensional model
+
+  # Role (optional - will use default user role if not specified)
+  role: null
+
+# ============================================
+# Data Configuration
+# ============================================
+data:
+  # File format for data ingestion
+  file_format: CSV
+
+  # Compression type (NONE, GZIP, BZIP2, etc.)
+  compression: GZIP
+
+  # CSV parsing options
+  csv_options:
+    field_delimiter: ','
+    record_delimiter: '\n'
+    skip_header: 1
+    field_optionally_enclosed_by: '"'
+    escape_character: '\\'
+    null_if: ['NULL', 'null', '']
+    error_on_column_count_mismatch: false
+
+# ============================================
+# Project Configuration
+# ============================================
+project:
+  name: ecommerce_data_warehouse
+  version: 1.0.0
+  description: Cloud Data Warehouse using AWS S3 and Snowflake
+
+# ============================================
+# Logging Configuration
+# ============================================
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

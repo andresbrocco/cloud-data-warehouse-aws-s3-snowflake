@@ -1,0 +1,17 @@
+# Core Dependencies for Cloud Data Warehouse Project
+# AWS S3 + Snowflake Integration
+
+# Snowflake Connector
+snowflake-connector-python>=3.0.0,<4.0.0
+
+# AWS SDK for Python
+boto3>=1.26.0,<2.0.0
+
+# Data Manipulation
+pandas>=2.0.0,<3.0.0
+
+# Environment Variables Management
+python-dotenv>=1.0.0,<2.0.0
+
+# Configuration File Parsing
+pyyaml>=6.0.0,<7.0.0
