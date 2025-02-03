@@ -8,9 +8,9 @@ config/config.yaml
 !config/config.yaml.example
 
 # Data Files
-data/
-*.csv
-*.parquet
+# data/
+# *.csv
+# *.parquet
 *.xlsx
 *.xls
 # Exclude data text files but keep project files
