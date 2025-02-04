@@ -32,6 +32,79 @@ The project follows a medallion architecture pattern:
 CSV Files → AWS S3 → Snowflake RAW → Snowflake STAGING → Snowflake PRODUCTION
 ```
 
+## Database Architecture
+
+This project implements a **three-layer database architecture** within Snowflake, providing clear separation between data ingestion, transformation, and analytics.
+
+### Database and Schema Structure
+
+```
+ECOMMERCE_DW (Database)
+├── RAW (Schema)
+│   ├── Purpose: Store unprocessed data exactly as received from S3
+│   ├── Tables: raw_transactions, raw_customers, etc.
+│   └── Characteristics: No transformations, immutable, source of truth
+│
+├── STAGING (Schema)
+│   ├── Purpose: Apply cleaning, validation, and business logic
+│   ├── Tables: stg_transactions, stg_customers, etc.
+│   └── Characteristics: Data quality checks, standardization, derived fields
+│
+└── PRODUCTION (Schema)
+    ├── Purpose: Dimensional model optimized for analytics
+    ├── Tables: fact_sales, dim_customer, dim_product, dim_date
+    └── Characteristics: Star schema, denormalized, query-optimized
+```
+
+### Data Flow
+
+1. **Ingestion (S3 → RAW)**
+   - CSV files uploaded to AWS S3 bucket
+   - Snowflake `COPY INTO` commands load data to RAW tables
+   - Data stored exactly as received, no modifications
+
+2. **Transformation (RAW → STAGING)**
+   - SQL transformations clean and validate data
+   - Remove duplicates, handle nulls, standardize formats
+   - Apply business rules and calculate derived fields
+
+3. **Modeling (STAGING → PRODUCTION)**
+   - Build dimensional model (fact and dimension tables)
+   - Create relationships using foreign keys
+   - Optimize for analytical queries and BI tools
+
+### Key Design Principles
+
+- **Immutability**: RAW layer preserves original data for reprocessing
+- **Idempotency**: Transformations can be safely re-run
+- **Separation of Concerns**: Each layer has a distinct responsibility
+- **Data Quality**: Progressive validation as data moves through layers
+- **Query Performance**: PRODUCTION layer optimized for fast analytics
+
+### Quick Start - Database Setup
+
+Execute these scripts in order to set up the database structure:
+
+```bash
+# 1. Configure AWS-Snowflake integration
+# Run: sql/setup/01_storage_integration.sql
+
+# 2. Create database and schemas
+# Run: sql/setup/02_create_database_schemas.sql
+
+# 3. Create file formats for CSV and Parquet
+# Run: sql/setup/03_create_file_formats.sql
+```
+
+### Documentation
+
+For detailed information about the architecture:
+
+- **[Data Layers](docs/architecture/data-layers.md)** - In-depth explanation of RAW, STAGING, and PRODUCTION layers
+- **[Naming Conventions](docs/architecture/naming-conventions.md)** - Standards for tables, columns, and database objects
+- **[AWS Setup Guide](docs/aws-setup.md)** - Setting up S3 and IAM permissions
+- **[Snowflake Setup Guide](docs/snowflake-setup.md)** - Configuring your Snowflake account
+
 ## Prerequisites
 
 Before starting, ensure you have:
