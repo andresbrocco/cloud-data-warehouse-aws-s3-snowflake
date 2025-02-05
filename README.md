@@ -112,17 +112,40 @@ After setting up the database, load e-commerce data from S3:
 
 # 3. Load data from Parquet (optimized approach)
 # Run: sql/raw/03_load_data_parquet.sql
-
-# 4. Benchmark CSV vs Parquet performance
-# Run: sql/raw/04_benchmark_csv_vs_parquet.sql
 ```
 
 **Performance Comparison:**
-- **CSV:** 91 MB file, ~25 seconds load time
-- **Parquet:** 7.5 MB file, ~8 seconds load time (3x faster, 92% smaller)
-- **Recommendation:** Use Parquet for production workloads
+- **CSV:** 91 MB file, 8.6 seconds load time
+- **Parquet:** 7.5 MB file, 12 seconds load time
+- **Recommendation:** Use Parquet for production workloads (because for files larger than 1Gb it pays off)
 
-See [docs/data-loading.md](docs/data-loading.md) for comprehensive loading guide and [docs/benchmarks/csv-vs-parquet.md](docs/benchmarks/csv-vs-parquet.md) for detailed performance analysis.
+### STAGING Layer - Data Cleaning and Validation
+
+The STAGING layer transforms raw data into clean, validated, business-ready format:
+
+```bash
+# 1. Create staging table with proper data types
+# Run: sql/staging/01_create_staging_table.sql
+
+# 2. Load and transform data with quality checks
+# Run: sql/staging/02_load_staging_from_raw.sql
+
+# 3. Validate data quality
+# Run: sql/staging/03_staging_quality_checks.sql
+```
+
+**Key Features:**
+- **Type conversions:** VARCHAR → INTEGER, DECIMAL, TIMESTAMP
+- **Data validation:** Quality flags for invalid records
+- **Business rules:** Calculate totals, exclude cancellations
+- **Quality monitoring:** Retain invalid records for analysis
+- **Sources from:** `raw_online_retail_parquet` (based on Step 7 performance benchmark)
+
+**Quality Approach:**
+- "Validate and flag" pattern - invalid records marked but retained
+- `is_valid` flag indicates records passing all quality checks
+- `quality_issues` column describes specific validation failures
+- Production layer filters with `WHERE is_valid = TRUE`
 
 ### Documentation
 
