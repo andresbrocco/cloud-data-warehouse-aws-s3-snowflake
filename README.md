@@ -94,7 +94,35 @@ Execute these scripts in order to set up the database structure:
 
 # 3. Create file formats for CSV and Parquet
 # Run: sql/setup/03_create_file_formats.sql
+
+# 4. Create external stage pointing to S3
+# Run: sql/setup/04_create_external_stage.sql
 ```
+
+### Data Loading Pipeline
+
+After setting up the database, load e-commerce data from S3:
+
+```bash
+# 1. Create RAW layer table
+# Run: sql/raw/01_create_raw_table.sql
+
+# 2. Load data from CSV (initial approach)
+# Run: sql/raw/02_load_data_csv.sql
+
+# 3. Load data from Parquet (optimized approach)
+# Run: sql/raw/03_load_data_parquet.sql
+
+# 4. Benchmark CSV vs Parquet performance
+# Run: sql/raw/04_benchmark_csv_vs_parquet.sql
+```
+
+**Performance Comparison:**
+- **CSV:** 91 MB file, ~25 seconds load time
+- **Parquet:** 7.5 MB file, ~8 seconds load time (3x faster, 92% smaller)
+- **Recommendation:** Use Parquet for production workloads
+
+See [docs/data-loading.md](docs/data-loading.md) for comprehensive loading guide and [docs/benchmarks/csv-vs-parquet.md](docs/benchmarks/csv-vs-parquet.md) for detailed performance analysis.
 
 ### Documentation
 
