@@ -147,12 +147,68 @@ The STAGING layer transforms raw data into clean, validated, business-ready form
 - `quality_issues` column describes specific validation failures
 - Production layer filters with `WHERE is_valid = TRUE`
 
+### PRODUCTION Layer - Dimensional Model
+
+The PRODUCTION layer implements a **snowflake schema** dimensional model optimized for business intelligence and analytics:
+
+```bash
+# 1. Create date dimension (2009-2012 calendar)
+# Run: sql/production/01_create_dim_date.sql
+
+# 2. Create country dimension (geographic hierarchy)
+# Run: sql/production/02_create_dim_country.sql
+
+# 3. Create customer dimension with SCD Type 2
+# Run: sql/production/03_create_dim_customer.sql
+
+# 4. Create product category dimension
+# Run: sql/production/04_create_dim_category.sql
+
+# 5. Create product dimension with SCD Type 2
+# Run: sql/production/05_create_dim_product.sql
+```
+
+**Dimensional Model Features:**
+
+- **Five dimension tables:**
+  - `dim_date` - Date dimension (1,461 days, 2009-2012)
+  - `dim_country` - Country dimension (~40 countries with regional groupings)
+  - `dim_customer` - Customer dimension (~4,000 customers with lifecycle metrics)
+  - `dim_category` - Product category dimension (8 predefined categories)
+  - `dim_product` - Product dimension (~3,000-4,000 products)
+
+- **Snowflake schema normalization:**
+  - Customer → Country hierarchy (reduced redundancy)
+  - Product → Category hierarchy (centralized categorization)
+  - Normalized dimensions enable shared lookups and easier updates
+
+- **SCD Type 2 implementation:**
+  - `dim_customer` tracks historical changes (e.g., country moves)
+  - `dim_product` tracks historical changes (e.g., price updates)
+  - Columns: `_effective_from`, `_effective_to`, `_is_current`
+  - Enables point-in-time historical analysis
+
+- **Pre-aggregated customer metrics:**
+  - `first_order_date`, `last_order_date` (lifecycle tracking)
+  - `total_lifetime_orders` (frequency analysis)
+  - Supports RFM (Recency, Frequency, Monetary) analysis
+
+**Design Principles:**
+
+- Surrogate keys (AUTOINCREMENT) for all dimensions
+- Foreign key relationships (informational in Snowflake)
+- Type 1 SCD for static dimensions (date, country, category)
+- Type 2 SCD for changing dimensions (customer, product)
+- Business keys preserved for traceability (customer_id, stock_code)
+
 ### Documentation
 
 For detailed information about the architecture:
 
 - **[Data Layers](docs/architecture/data-layers.md)** - In-depth explanation of RAW, STAGING, and PRODUCTION layers
 - **[Naming Conventions](docs/architecture/naming-conventions.md)** - Standards for tables, columns, and database objects
+- **[Dimensional Model](docs/architecture/dimensional-model.md)** - Complete snowflake schema documentation
+- **[Snowflake Schema Diagram](docs/architecture/snowflake-schema-diagram.md)** - Visual representations of dimensional model
 - **[AWS Setup Guide](docs/aws-setup.md)** - Setting up S3 and IAM permissions
 - **[Snowflake Setup Guide](docs/snowflake-setup.md)** - Configuring your Snowflake account
 
