@@ -399,19 +399,18 @@ dim_product.category_key → dim_category.category_key
                                                  │
 ┌──────────────────┐                   ┌────────┴─────────┐                   ┌──────────────────┐
 │   dim_category   │                   │   fact_sales     │                   │    dim_date      │
-├──────────────────┤                   │   (FUTURE)       │                   ├──────────────────┤
-│ category_key(PK) │                   ├──────────────────┤                   │ date_key (PK)    │
-│ category_name    │                   │ sales_key (PK)   │                   │ date             │
-└────────┬─────────┘                   │ invoice_no       │                   │ year             │
-         │                             │ invoice_line_no  │                   │ quarter          │
-         │ category_key (FK)           │ customer_key(FK) ├───────────────────┤ month            │
-         │                             │ product_key (FK) │                   │ month_name       │
-         │                             │ date_key (FK)    │                   │ day              │
-         │                             │ quantity         │                   │ day_of_week      │
-         │                             │ unit_price       │                   │ day_name         │
-         │                             │ total_amount     │                   │ is_weekend       │
-         │                             │ _loaded_at       │                   └──────────────────┘
-         │                             └────────┬─────────┘
+├──────────────────┤                   ├──────────────────┤                   ├──────────────────┤
+│ category_key(PK) │                   │ sales_key (PK)   │                   │ date_key (PK)    │
+│ category_name    │                   │ date_key (FK)    ├───────────────────┤ date             │
+└────────┬─────────┘                   │ customer_key(FK) │                   │ year             │
+         │                             │ product_key (FK) │                   │ quarter          │
+         │ category_key (FK)           │ country_key (FK) │                   │ month            │
+         │                             │ invoice_no       │                   │ month_name       │
+         │                             │ quantity         │                   │ day              │
+         │                             │ unit_price       │                   │ day_of_week      │
+         │                             │ total_amount     │                   │ day_name         │
+         │                             │ _loaded_at       │                   │ is_weekend       │
+         │                             └────────┬─────────┘                   └──────────────────┘
          │                                      │
          │ category_key (FK)                    │ product_key (FK)
          │                                      │
@@ -451,7 +450,7 @@ S3 Parquet Files
       → PRODUCTION.dim_customer (aggregated from stg_orders by customer_id)
       → PRODUCTION.dim_category (predefined categories)
       → PRODUCTION.dim_product (aggregated from stg_orders by stock_code)
-      → PRODUCTION.fact_sales (future: transactional facts)
+      → PRODUCTION.fact_sales (transactional facts with dimension lookups)
 ```
 
 **Key Transformation Points:**
@@ -599,10 +598,93 @@ INNER JOIN dim_date d ON f.invoice_date = d.date;
 
 ---
 
+## Fact Table
+
+### fact_sales - Sales Transaction Fact Table
+
+**Purpose:** Records e-commerce sales transactions at invoice line item grain
+
+**Type:** Transaction Fact Table (additive measures)
+
+**Grain:** One row per invoice line item (one product on one invoice)
+
+**Key Attributes:**
+- `sales_key` (INTEGER AUTOINCREMENT, PK): Surrogate key for each fact row
+- `date_key` (INTEGER, FK, NOT NULL): Transaction date → dim_date
+- `customer_key` (INTEGER, FK, NULLABLE): Buyer → dim_customer (NULL for guest transactions)
+- `product_key` (INTEGER, FK, NOT NULL): Product sold → dim_product
+- `country_key` (INTEGER, FK, NOT NULL): Shipping destination → dim_country
+- `invoice_no` (VARCHAR): Degenerate dimension, groups line items into orders
+- `quantity` (INTEGER): Units sold (negative = returns)
+- `unit_price` (DECIMAL): Price per unit (actual transaction price)
+- `total_amount` (DECIMAL): Line item total = quantity × unit_price (primary measure)
+- `_loaded_at` (TIMESTAMP_NTZ): ETL timestamp
+
+**Measures:**
+- **Additive:** quantity, total_amount (can sum across all dimensions)
+- **Semi-additive:** unit_price (can average, summing usually meaningless)
+
+**Fact Table Loading:**
+```sql
+-- Load from staging with dimension lookups
+INSERT INTO fact_sales (
+  date_key, customer_key, product_key, country_key,
+  invoice_no, quantity, unit_price, total_amount
+)
+SELECT
+  stg.invoice_date_key,
+  cust.customer_key,        -- LEFT JOIN (nullable for guests)
+  prod.product_key,          -- INNER JOIN (required)
+  country.country_key,       -- INNER JOIN (required)
+  stg.invoice_no,
+  stg.quantity,
+  stg.unit_price,
+  stg.total_amount
+FROM STAGING.stg_orders stg
+LEFT JOIN dim_customer cust ON stg.customer_id = cust.customer_id AND cust._is_current = TRUE
+INNER JOIN dim_product prod ON stg.stock_code = prod.stock_code AND prod._is_current = TRUE
+INNER JOIN dim_country country ON stg.country = country.country_name
+WHERE stg.is_valid = TRUE;
+```
+
+**Usage Patterns:**
+```sql
+-- Total revenue by country
+SELECT c.country_name, SUM(f.total_amount) AS revenue
+FROM fact_sales f
+JOIN dim_country c ON f.country_key = c.country_key
+GROUP BY c.country_name;
+
+-- Monthly revenue trend
+SELECT d.year, d.month_name, SUM(f.total_amount) AS revenue
+FROM fact_sales f
+JOIN dim_date d ON f.date_key = d.date_key
+GROUP BY d.year, d.month_name;
+
+-- Top products by revenue
+SELECT p.description, SUM(f.total_amount) AS revenue
+FROM fact_sales f
+JOIN dim_product p ON f.product_key = p.product_key
+WHERE p._is_current = TRUE
+GROUP BY p.description
+ORDER BY revenue DESC;
+```
+
+**Design Notes:**
+- **Grain:** Invoice line item enables product-level analysis and basket analysis
+- **NULL customer_key:** Allowed for guest transactions (LEFT JOIN in queries)
+- **SCD Type 2 lookups:** Join on `_is_current = TRUE` for current dimension versions
+- **Degenerate dimension:** invoice_no stored in fact (groups line items, no dimension needed)
+- **Data volume:** ~400K-500K rows (filtered from staging where is_valid = TRUE)
+
+For detailed fact table design documentation, see [Fact Table Design](fact-table-design.md).
+
+---
+
 ## Conclusion
 
-This dimensional model implements a snowflake schema optimized for e-commerce analytics. It balances normalization (reduced redundancy) with query simplicity, providing a solid foundation for business intelligence reporting, customer analysis, and product performance tracking.
+This dimensional model implements a complete snowflake schema optimized for e-commerce analytics. It balances normalization (reduced redundancy) with query simplicity, providing a solid foundation for business intelligence reporting, customer analysis, and product performance tracking.
 
 The SCD Type 2 implementation on customer and product dimensions enables historical analysis, while the normalized country and category dimensions reduce data redundancy and improve maintainability.
 
-Next step: Implement the fact_sales table to complete the dimensional model and enable end-to-end analytics queries.
+The fact_sales table completes the dimensional model, enabling end-to-end analytics queries across all dimensions with comprehensive business metrics.

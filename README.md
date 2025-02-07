@@ -166,6 +166,15 @@ The PRODUCTION layer implements a **snowflake schema** dimensional model optimiz
 
 # 5. Create product dimension with SCD Type 2
 # Run: sql/production/05_create_dim_product.sql
+
+# 6. Create fact table for sales transactions
+# Run: sql/production/06_create_fact_sales.sql
+
+# 7. Load fact table with dimension lookups
+# Run: sql/production/07_load_fact_sales.sql
+
+# 8. Validate fact table data integrity
+# Run: sql/production/08_fact_validation_queries.sql
 ```
 
 **Dimensional Model Features:**
@@ -176,6 +185,13 @@ The PRODUCTION layer implements a **snowflake schema** dimensional model optimiz
   - `dim_customer` - Customer dimension (~4,000 customers with lifecycle metrics)
   - `dim_category` - Product category dimension (8 predefined categories)
   - `dim_product` - Product dimension (~3,000-4,000 products)
+
+- **One fact table:**
+  - `fact_sales` - Transaction fact table (~400K-500K rows)
+  - Grain: One row per invoice line item
+  - Measures: quantity, unit_price, total_amount
+  - Foreign keys: date_key, customer_key, product_key, country_key
+  - Degenerate dimension: invoice_no (groups line items into orders)
 
 - **Snowflake schema normalization:**
   - Customer → Country hierarchy (reduced redundancy)
@@ -208,6 +224,7 @@ For detailed information about the architecture:
 - **[Data Layers](docs/architecture/data-layers.md)** - In-depth explanation of RAW, STAGING, and PRODUCTION layers
 - **[Naming Conventions](docs/architecture/naming-conventions.md)** - Standards for tables, columns, and database objects
 - **[Dimensional Model](docs/architecture/dimensional-model.md)** - Complete snowflake schema documentation
+- **[Fact Table Design](docs/architecture/fact-table-design.md)** - Detailed fact table architecture and ETL patterns
 - **[Snowflake Schema Diagram](docs/architecture/snowflake-schema-diagram.md)** - Visual representations of dimensional model
 - **[AWS Setup Guide](docs/aws-setup.md)** - Setting up S3 and IAM permissions
 - **[Snowflake Setup Guide](docs/snowflake-setup.md)** - Configuring your Snowflake account
