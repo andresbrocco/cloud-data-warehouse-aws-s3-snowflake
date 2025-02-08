@@ -217,6 +217,63 @@ The PRODUCTION layer implements a **snowflake schema** dimensional model optimiz
 - Type 2 SCD for changing dimensions (customer, product)
 - Business keys preserved for traceability (customer_id, stock_code)
 
+### Advanced Analytics
+
+The project includes sophisticated SQL analytics queries that demonstrate business intelligence capabilities:
+
+```bash
+# Customer Lifetime Value (CLV) Analysis
+# Run: sql/analytics/01_customer_lifetime_value.sql
+# Identifies most valuable customers with lifetime metrics
+
+# RFM Analysis (Recency, Frequency, Monetary)
+# Run: sql/analytics/02_rfm_analysis.sql
+# Segments customers into actionable groups (Champions, At Risk, etc.)
+
+# Product Affinity Analysis (Market Basket)
+# Run: sql/analytics/03_product_affinity.sql
+# Discovers products frequently bought together for cross-selling
+
+# Product Performance Trends
+# Run: sql/analytics/04_product_performance.sql
+# Analyzes top products with moving averages and rankings
+
+# Customer Value Segmentation
+# Run: sql/analytics/05_customer_segmentation.sql
+# Divides customers into High/Medium/Low value tiers using percentiles
+```
+
+**Key Analytics Features:**
+
+- **Customer Intelligence:**
+  - Lifetime value calculations with revenue ranking
+  - RFM segmentation (Recency, Frequency, Monetary)
+  - Customer behavior patterns and churn indicators
+  - Statistical segmentation using percentiles
+
+- **Product Intelligence:**
+  - Market basket analysis (product affinity)
+  - Performance trends with 3-month moving averages
+  - Running totals and cumulative revenue tracking
+  - Monthly product ranking analysis
+
+- **Advanced SQL Techniques:**
+  - Window functions (RANK, NTILE, running totals, moving averages)
+  - Common Table Expressions (CTEs) for query organization
+  - Self-joins for relationship discovery
+  - Statistical functions (PERCENTILE_CONT)
+  - Complex CASE logic for business segmentation
+
+**Business Value:**
+
+- Identify high-value customers for VIP programs
+- Discover at-risk customers for win-back campaigns
+- Optimize product bundling and cross-sell strategies
+- Forecast demand using trend analysis
+- Allocate marketing spend by customer segment
+
+For comprehensive documentation, see **[Customer and Product Analytics Guide](docs/analytics/customer-product-analytics.md)**.
+
 ### Documentation
 
 For detailed information about the architecture:
@@ -226,6 +283,7 @@ For detailed information about the architecture:
 - **[Dimensional Model](docs/architecture/dimensional-model.md)** - Complete snowflake schema documentation
 - **[Fact Table Design](docs/architecture/fact-table-design.md)** - Detailed fact table architecture and ETL patterns
 - **[Snowflake Schema Diagram](docs/architecture/snowflake-schema-diagram.md)** - Visual representations of dimensional model
+- **[Customer and Product Analytics](docs/analytics/customer-product-analytics.md)** - Advanced SQL analytics queries and business intelligence
 - **[AWS Setup Guide](docs/aws-setup.md)** - Setting up S3 and IAM permissions
 - **[Snowflake Setup Guide](docs/snowflake-setup.md)** - Configuring your Snowflake account
 
