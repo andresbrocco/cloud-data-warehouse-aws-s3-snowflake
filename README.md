@@ -221,6 +221,8 @@ The PRODUCTION layer implements a **snowflake schema** dimensional model optimiz
 
 The project includes sophisticated SQL analytics queries that demonstrate business intelligence capabilities:
 
+#### Customer and Product Analytics
+
 ```bash
 # Customer Lifetime Value (CLV) Analysis
 # Run: sql/analytics/01_customer_lifetime_value.sql
@@ -243,12 +245,37 @@ The project includes sophisticated SQL analytics queries that demonstrate busine
 # Divides customers into High/Medium/Low value tiers using percentiles
 ```
 
+#### Time-Series and Cohort Analytics
+
+```bash
+# Revenue Trends and Growth Analysis
+# Run: sql/analytics/06_revenue_trends.sql
+# Month-over-month (MoM) and year-over-year (YoY) growth with moving averages
+
+# Seasonality and Pattern Analysis
+# Run: sql/analytics/07_seasonality_analysis.sql
+# Monthly and weekly patterns, weekend vs weekday comparisons
+
+# Cohort Retention Analysis
+# Run: sql/analytics/08_cohort_retention.sql
+# Customer retention tracking by acquisition cohort over time
+
+# Customer Churn Analysis
+# Run: sql/analytics/09_customer_churn.sql
+# Lifecycle stage categorization (Active, At Risk, Churning, Churned)
+
+# Peak Shopping Times Analysis
+# Run: sql/analytics/10_peak_shopping_times.sql
+# Top revenue days and Pareto analysis (80/20 rule)
+```
+
 **Key Analytics Features:**
 
 - **Customer Intelligence:**
   - Lifetime value calculations with revenue ranking
   - RFM segmentation (Recency, Frequency, Monetary)
-  - Customer behavior patterns and churn indicators
+  - Cohort retention analysis with lifecycle tracking
+  - Churn prediction and customer lifecycle stages
   - Statistical segmentation using percentiles
 
 - **Product Intelligence:**
@@ -257,11 +284,18 @@ The project includes sophisticated SQL analytics queries that demonstrate busine
   - Running totals and cumulative revenue tracking
   - Monthly product ranking analysis
 
+- **Temporal Intelligence:**
+  - Revenue trend analysis with MoM and YoY growth rates
+  - Seasonality detection (monthly and weekly patterns)
+  - Peak period identification and revenue concentration
+  - Time-series forecasting foundations
+
 - **Advanced SQL Techniques:**
-  - Window functions (RANK, NTILE, running totals, moving averages)
+  - Window functions (LAG, RANK, NTILE, running totals, moving averages)
   - Common Table Expressions (CTEs) for query organization
   - Self-joins for relationship discovery
   - Statistical functions (PERCENTILE_CONT)
+  - Date manipulation (DATE_TRUNC, DATEDIFF)
   - Complex CASE logic for business segmentation
 
 **Business Value:**
@@ -271,8 +305,13 @@ The project includes sophisticated SQL analytics queries that demonstrate busine
 - Optimize product bundling and cross-sell strategies
 - Forecast demand using trend analysis
 - Allocate marketing spend by customer segment
+- Validate product-market fit through retention metrics
+- Plan inventory and resources around seasonal patterns
+- Understand revenue volatility and concentration risks
 
-For comprehensive documentation, see **[Customer and Product Analytics Guide](docs/analytics/customer-product-analytics.md)**.
+For comprehensive documentation:
+- **[Customer and Product Analytics Guide](docs/analytics/customer-product-analytics.md)**
+- **[Time-Series and Cohort Analytics Guide](docs/analytics/timeseries-cohort-analytics.md)**
 
 ### Documentation
 
@@ -284,6 +323,7 @@ For detailed information about the architecture:
 - **[Fact Table Design](docs/architecture/fact-table-design.md)** - Detailed fact table architecture and ETL patterns
 - **[Snowflake Schema Diagram](docs/architecture/snowflake-schema-diagram.md)** - Visual representations of dimensional model
 - **[Customer and Product Analytics](docs/analytics/customer-product-analytics.md)** - Advanced SQL analytics queries and business intelligence
+- **[Time-Series and Cohort Analytics](docs/analytics/timeseries-cohort-analytics.md)** - Temporal analysis, retention tracking, and churn prediction
 - **[AWS Setup Guide](docs/aws-setup.md)** - Setting up S3 and IAM permissions
 - **[Snowflake Setup Guide](docs/snowflake-setup.md)** - Configuring your Snowflake account
 
