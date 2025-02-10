@@ -313,6 +313,72 @@ For comprehensive documentation:
 - **[Customer and Product Analytics Guide](docs/analytics/customer-product-analytics.md)**
 - **[Time-Series and Cohort Analytics Guide](docs/analytics/timeseries-cohort-analytics.md)**
 
+### Performance Optimization
+
+This project demonstrates production-grade performance optimization techniques using Snowflake's advanced features. These optimizations dramatically improve query performance while managing storage and compute costs effectively.
+
+```bash
+# 1. Create materialized views for pre-computed aggregations
+# Run: sql/optimization/01_create_materialized_views.sql
+
+# 2. Add clustering keys for improved partition pruning
+# Run: sql/optimization/02_clustering_keys.sql
+
+# 3. Enable search optimization for fast point lookups
+# Run: sql/optimization/03_search_optimization.sql
+
+# 4. Use optimized queries leveraging materialized views
+# Run: sql/optimization/04_optimized_queries.sql
+
+# 5. Analyze query performance and monitor optimization impact
+# Run: sql/optimization/05_query_performance_analysis.sql
+```
+
+**Optimization Features Implemented:**
+
+1. **Materialized Views (3 views created)**
+   - `mv_customer_summary`: Pre-aggregated customer lifetime metrics (orders, revenue, recency)
+   - `mv_product_summary`: Pre-aggregated product performance metrics (sales, customers, dates)
+   - `mv_daily_sales`: Pre-aggregated daily sales metrics (revenue, orders, customers by date)
+   - **Benefit:** faster query execution for dashboard and reporting queries
+   - **Use case:** Frequently-run expensive aggregations (10+ times/day)
+
+2. **Clustering Keys**
+   - Applied to `fact_sales` table on `(date_key, country_key)`
+   - **Benefit:** reduction in data scanned through partition pruning
+   - **Use case:** Range queries with date filters and country segmentation
+
+3. **Search Optimization Service**
+   - Enabled on `dim_customer.customer_id` for fast customer lookups
+   - Enabled on `dim_product.stock_code` for fast product lookups
+   - **Benefit:** faster point lookups (single customer/product queries)
+   - **Use case:** API endpoints, customer 360 views, product detail pages
+
+**Cost vs Performance Tradeoffs:**
+
+- **Storage cost:** Materialized views add ~0.5 MB (minimal for aggregated data)
+- **Compute cost:** Automatic refresh and clustering maintenance
+- **Savings:** Reduced query compute from faster execution
+- **ROI:** Positive return if queries run 10+ times/day (typical for dashboards)
+
+**Monitoring and Analysis:**
+
+The project includes comprehensive query performance analysis:
+- Query history analysis (slowest queries, most data scanned)
+- Clustering depth monitoring (optimization effectiveness)
+- Materialized view refresh status tracking
+- Before/after performance comparison queries
+
+**Production-Ready Features:**
+
+- Automatic maintenance (no manual refresh or re-clustering needed)
+- Idempotent scripts (safe to re-run optimization setup)
+- Comprehensive documentation with cost analysis
+- Best practices for optimization decision-making
+
+For detailed optimization strategies and implementation guide:
+- **[Performance Tuning Guide](docs/optimization/performance-tuning.md)** - Complete optimization strategies and decision framework
+
 ### Documentation
 
 For detailed information about the architecture:
